@@ -6,6 +6,7 @@
 //              Breckenridge CO
 //
 
+#include <cstdlib>
 #include <iostream>
 #include <set>
 #include "digit.h"
