@@ -11,27 +11,31 @@
 #include "sudoku.h"
 #include "digit.h"
 
+#define READ_ERROR -1
+
 using namespace std;
 
 sudoku::sudoku( const string &infile ): currentIndex(-1)
 {
    // Read the input file
    int count = readInput( infile );
+   if(count == READ_ERROR) return; 
 
    // Set a few local variables for convenience
    boardDim = static_cast<int>( sqrt( count ) );
    totalDigits = boardDim * boardDim;
 
    // Sanity check the input before proceeding
-   errorCheckInput( count );
+   if(errorCheckInput( count )) {
 
-   // This pre-determines all of the indices that need to
-   // be checked for any given digit in the board
-   setMaps();
-
-   // Print out the input
-   cout << "Input: " << endl;
-   printBoard();
+      // This pre-determines all of the indices that need to
+      // be checked for any given digit in the board
+      setMaps();
+   
+      // Print out the input
+      cout << "Input: " << endl;
+      printBoard();
+   }
 }
 
 void sudoku::solve( )
@@ -272,23 +276,25 @@ sudoku::~sudoku( )
 
 // This function will exit if there is a problem with
 // the input data
-void sudoku::errorCheckInput( int count )
+bool sudoku::errorCheckInput( int count )
 {
+   bool returnVal = true;
    if( totalDigits != count )
    {
       cout << "Error in input file: the number of entries in"
            << " the input file must be a perfect square. " << endl 
            << "There were " << count << " entries in the input file " << endl;
-      exit( 0 );
+      returnVal = false; 
    }
    for (int i = 0; i < mBoard.size() ; i++ )
    {
       if (mBoard[i] < 0 || mBoard[i] > boardDim )
       {
          cout << "Input data out of range " << mBoard[i] << endl;
-         exit( 0 );
+         returnVal = false; 
        }
    }
+   return returnVal;
 }
 
 int sudoku::readInput( const string &infile )
@@ -299,7 +305,7 @@ int sudoku::readInput( const string &infile )
    if( !in.is_open() )
    {
       cout << "Could not open the input file " << infile << endl;
-      exit(0);
+      return READ_ERROR; 
    }
 
    int tmp = 0;
