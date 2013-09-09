@@ -1,15 +1,8 @@
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Stack;
 import java.util.Random;
 
 public class MakeBoard {
@@ -37,15 +30,11 @@ public class MakeBoard {
                outLine = outLine.replace(","," ");;
                outLine = outLine.replace("["," ");;
                outLine = outLine.replace("]"," ");;
-               System.out.println(outLine);
+               output.append(outLine);
+               output.newLine();
             }
 
-            /* 
-            output.append("Hello!");
-            output.newLine();
             output.flush();
-            */
-
             output.close();
        } catch (Exception e) {
             e.printStackTrace();
@@ -95,7 +84,6 @@ public class MakeBoard {
              row = board.get(rowNum);
              row.set(colNum,value);
              board.put(rowNum,row);
-             // System.out.println(row.toString());
           }
       }
    }
