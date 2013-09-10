@@ -64,8 +64,11 @@ class sudoku
      // Read the input from file
      int readInput( const std::string &infile );
 
-     // Sanity check the input before trying to solve the puzzle
-     void errorCheckInput( int count );
+     // Sanity check the format of the input before trying to solve the puzzle
+     bool checkInputFormat( int count );
+
+     // Sanity check the content of the input puzzle
+     bool checkInputContent( int totalDigits );
 
 };
 
