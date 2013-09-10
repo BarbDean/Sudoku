@@ -1,7 +1,6 @@
 
 //
 // Written by:  Barbara Dean
-//              President
 //              High Mountain Technologies
 //              Breckenridge CO
 //
