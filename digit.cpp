@@ -25,7 +25,6 @@ digit::digit( int boardDim ): index(0), numPossibleValues( boardDim )
    }
 
    // Randomly Shuffle the order of the possibleValues
-   srand(unsigned(time(0)));
    for (int i = 0; i < boardDim; i++)
    {
       int randNum1 = rand() % boardDim;
