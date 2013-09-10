@@ -17,6 +17,7 @@ using namespace std;
 
 sudoku::sudoku( const string &infile ): currentIndex(-1)
 {
+
    // Read the input file
    int count = readInput( infile );
    if(count == READ_ERROR) return; 
@@ -26,7 +27,7 @@ sudoku::sudoku( const string &infile ): currentIndex(-1)
    totalDigits = boardDim * boardDim;
 
    // Sanity check the input before proceeding
-   if(errorCheckInput( count )) {
+   if(checkInputFormat( count )) {
 
       // This pre-determines all of the indices that need to
       // be checked for any given digit in the board
@@ -40,6 +41,13 @@ sudoku::sudoku( const string &infile ): currentIndex(-1)
 
 void sudoku::solve( )
 {
+   // Check the content of the input data
+   if(!checkInputContent(totalDigits)) 
+   {
+      return;
+   }
+
+  int iterations = 0;
   // Outter loop will keep going until a solution is found.
   // ( Gulp! Can you say 'infinite loop'???? Yikes! )
   for ( ; ; )
@@ -219,6 +227,14 @@ bool sudoku::lookForValidValue( bool backup )
    // object
    digit *x;
 
+   // We can only backup if there have been some squares
+   // already assigned.  If the digits vector is 
+   // size 0, there is no place to go, so try again to assign
+   // the very first block. 
+   if(digitsVector.size() == 0) {
+      backup = false;
+   }
+
    // If "backup" is true, we want to go back to
    // an old digit and modify its value
    if ( backup )
@@ -237,16 +253,19 @@ bool sudoku::lookForValidValue( bool backup )
        x = new digit( boardDim );
    }
   
-   // Loop over all of the possible values
-   for ( int i = 0; i < x->numPossibleValues ; i++)
+   // Loop over all of the possible values. Start at x->index
+   // so that we skip over values that were already considered
+   // for this digit.
+   for ( int i = x->index; i < x->numPossibleValues ; i++)
    {
       // Get the next possible value that could be filled into this slot
       mBoard[ currentIndex ] = x->getNextPossibleValue();
-      
+
       // The value returned by getNextPossibleValue will be
       // -1 when all possible values have been exhausted
-      if (mBoard[ currentIndex ] == -1 )
+      if (mBoard[ currentIndex ] == -1 ) {
           break;
+      }
   
       // Check to see if the number that we just found is valid
       bool foundValidValue = checkValue( );
@@ -275,8 +294,8 @@ sudoku::~sudoku( )
 }
 
 // This function will exit if there is a problem with
-// the input data
-bool sudoku::errorCheckInput( int count )
+// the format of the input data
+bool sudoku::checkInputFormat( int count )
 {
    bool returnVal = true;
    if( totalDigits != count )
@@ -296,6 +315,25 @@ bool sudoku::errorCheckInput( int count )
    }
    return returnVal;
 }
+
+// This function will exit if there is a problem with
+// the content of the input data
+bool sudoku::checkInputContent( int totalDigits )
+{
+   bool returnVal = true;
+   currentIndex = 0;
+   for (int i = 0; i < totalDigits; i++ ) {
+        currentIndex++;
+        if(!checkValue()) {
+            cout << "Violation detected on the input board" << endl;
+            cout << "The violation is at digit " << i << " assuming a flattened board" << endl;
+            returnVal = false;
+            break;
+        }
+   }
+   return returnVal;
+}
+
 
 int sudoku::readInput( const string &infile )
 {
