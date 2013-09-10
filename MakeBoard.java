@@ -19,7 +19,7 @@ public class MakeBoard {
             }
             Integer boardSize = Integer.valueOf(args[0]);
 
-            File out = new File("sudoku_" + boardSize + "_input.txt");
+            File out = new File("sudoku_" + boardSize + "_solution.txt");
             BufferedWriter output =  new BufferedWriter(new FileWriter(out));
 
             TreeMap<Integer,ArrayList<Integer>> board = new TreeMap<Integer,ArrayList<Integer>>();
@@ -34,6 +34,31 @@ public class MakeBoard {
                output.newLine();
             }
 
+            // Write out the solution
+            System.out.println("The solution to the Sudoku puzzle written to : " + out.toString()); 
+            output.flush();
+            output.close();
+
+            // Write out the input board with some percentage of the squares zeroed out
+            out = new File("sudoku_" + boardSize + "_input.txt");
+            output =  new BufferedWriter(new FileWriter(out));
+            for(Integer i=0; i < boardSize; i++) {
+                ArrayList<Integer> row = board.get(i);
+                Integer numZeros = getRand(boardSize);
+                for(Integer j=0; j< numZeros; j++) {
+                    Integer index = getRand(boardSize);
+                    row.set(index,0);
+                }
+                board.put(i,row);
+                String outLine = board.get(i).toString();
+                outLine = outLine.replace(","," ");;
+                outLine = outLine.replace("["," ");;
+                outLine = outLine.replace("]"," ");;
+                output.append(outLine);
+                output.newLine();
+            }
+            // Write out input board 
+            System.out.println("The solution to the Sudoku puzzle written to : " + out.toString()); 
             output.flush();
             output.close();
        } catch (Exception e) {
@@ -43,22 +68,26 @@ public class MakeBoard {
    public static void fillRow(TreeMap<Integer,ArrayList<Integer>> board,
                               Integer rowNum, Integer boardSize) {
 
-       Integer maxToFill = Math.round(boardSize);
-       Integer numToFill = getRand(maxToFill);
+       ArrayList<Integer> workingRow = board.get(rowNum);
+       Integer lastCol = 0;
+       while(workingRow.contains(0)) {
 
-       for(Integer i=0; i < numToFill; i++) {
-           ArrayList<Integer> row = board.get(rowNum);
-           Integer colNum = getRand(boardSize);
-           Integer value = getRand(boardSize);
+         Integer colNum = getRand(boardSize);
+         Integer value  = getRand(boardSize)+1; // values are 1 based
+
+         // Try N times before backing up...Set N to boardSize^2
+         Boolean backup = false;
+         for(Integer i=0; i < boardSize*boardSize; i++) {
 
            // Get a value that works for the row
-           while(row.contains(value)) {
-              value = getRand(boardSize);
+           while(workingRow.contains(value) ) {
+              value = getRand(boardSize) + 1;
            }
            Boolean goodValue = true;
+
            // Check the column
            for(Integer j=0; j < rowNum; j++) {
-                row = board.get(j);
+                ArrayList<Integer> row = board.get(j);
                 if(row.get(colNum) == value) {
                    goodValue = false;
                  }
@@ -71,7 +100,7 @@ public class MakeBoard {
              Integer boxPosY = colNum/boxDim ;
              for ( int kk = 0; kk < boxDim; kk++) {
                 // Get the row for the box
-                row =  board.get(boxPosX * boxDim + kk); 
+                ArrayList<Integer> row =  board.get(boxPosX * boxDim + kk); 
                 for ( int yy = 0; yy < boxDim; yy++ ) {
                    // Check the column 
                    if(row.get(boxPosY * boxDim + yy) == value) {
@@ -80,12 +109,20 @@ public class MakeBoard {
                 }
              }
           }
+          // If we did not find a good value, then back up.
           if(goodValue) {
-             row = board.get(rowNum);
-             row.set(colNum,value);
-             board.put(rowNum,row);
+             workingRow.set(colNum,value);
+             board.put(rowNum,workingRow);
+             lastCol = colNum;
+             break;
           }
-      }
+       }
+       if(backup) {
+             workingRow.set(lastCol,0);
+             board.put(rowNum,workingRow);
+       }
+       // System.out.println(rowNum + " : " + workingRow.toString());
+     }
    }
 
    public static void initBoard(TreeMap<Integer,ArrayList<Integer>> board,
