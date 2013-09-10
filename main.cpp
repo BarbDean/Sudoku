@@ -5,8 +5,6 @@
 //              Breckenridge CO
 //
 // main.cpp, sudoku.cpp/h, digit.cpp/h
-// compiled under cygwin.
-// need a few minor changes to compile under visual c++
 //
 
 #include <iostream>
@@ -16,13 +14,17 @@ using namespace std;
 
 int main( int argc, char **argv )
 {
-   string infile = "input.txt";
-   if ( argc > 1 )
-   {
-      infile = argv[1];
+   try {
+      string infile = "input.txt";
+      if ( argc > 1 )
+      {
+         infile = argv[1];
+      }
+    
+      sudoku game ( infile );
+      game.solve();
    }
-
-   sudoku game ( infile );
-   game.solve();
+   catch (int e) {
+      cout << "Exception: " << e << endl;
+   }
 }
-
