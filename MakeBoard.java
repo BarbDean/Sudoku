@@ -1,6 +1,7 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Random;
@@ -8,9 +9,14 @@ import java.util.Random;
 public class MakeBoard {
 
     static Random generator = new Random();
+    static Integer numCycles = 0;
+    static Integer maxCycles = 1000000;
+    static Integer attempts = 0;
+    static TreeMap<Integer,ArrayList<Integer>> board;
 
     public static void main(String[] args) {
 
+        board = new TreeMap<Integer,ArrayList<Integer>>();
         try {
 
             if(args.length < 1) {
@@ -19,58 +25,36 @@ public class MakeBoard {
             }
             Integer boardSize = Integer.valueOf(args[0]);
 
-            File out = new File("sudoku_" + boardSize + "_solution.txt");
-            BufferedWriter output =  new BufferedWriter(new FileWriter(out));
+            while(!generate(boardSize));
+            printOutputFiles(boardSize);
 
-            TreeMap<Integer,ArrayList<Integer>> board = new TreeMap<Integer,ArrayList<Integer>>();
-            initBoard(board,boardSize);
-            for(Integer i=0; i < boardSize; i++) { 
-               fillRow(board,i,boardSize);
-               String outLine = board.get(i).toString();
-               outLine = outLine.replace(","," ");;
-               outLine = outLine.replace("["," ");;
-               outLine = outLine.replace("]"," ");;
-               output.append(outLine);
-               output.newLine();
-            }
-
-            // Write out the solution
-            System.out.println("The solution to the Sudoku puzzle written to : " + out.toString()); 
-            output.flush();
-            output.close();
-
-            // Write out the input board with some percentage of the squares zeroed out
-            out = new File("sudoku_" + boardSize + "_input.txt");
-            output =  new BufferedWriter(new FileWriter(out));
-            for(Integer i=0; i < boardSize; i++) {
-                ArrayList<Integer> row = board.get(i);
-                Integer numZeros = getRand(boardSize);
-                for(Integer j=0; j< numZeros; j++) {
-                    Integer index = getRand(boardSize);
-                    row.set(index,0);
-                }
-                board.put(i,row);
-                String outLine = board.get(i).toString();
-                outLine = outLine.replace(","," ");;
-                outLine = outLine.replace("["," ");;
-                outLine = outLine.replace("]"," ");;
-                output.append(outLine);
-                output.newLine();
-            }
-            // Write out input board 
-            System.out.println("The solution to the Sudoku puzzle written to : " + out.toString()); 
-            output.flush();
-            output.close();
-       } catch (Exception e) {
+         } catch (Exception e) {
             e.printStackTrace();
-       }
+         }
+     }
+    public static boolean generate(Integer boardSize) {
+
+      numCycles = 0;
+      System.out.println("Attempt # " + attempts++);
+      Boolean success = true;
+
+      initBoard(boardSize);
+      for(Integer i=0; i < boardSize; i++) { 
+          if(!fillRow(i,boardSize)){ 
+             success = false; 
+             break;
+          }
+      }
+     return success; 
    }
-   public static void fillRow(TreeMap<Integer,ArrayList<Integer>> board,
-                              Integer rowNum, Integer boardSize) {
+   public static boolean fillRow(Integer rowNum, Integer boardSize) {
 
        ArrayList<Integer> workingRow = board.get(rowNum);
        Integer lastCol = 0;
        while(workingRow.contains(0)) {
+
+         // Account for the possibility that we could get stuck 
+         if(numCycles  > maxCycles) return false;
 
          Integer colNum = getRand(boardSize);
          Integer value  = getRand(boardSize)+1; // values are 1 based
@@ -78,6 +62,8 @@ public class MakeBoard {
          // Try N times before backing up...Set N to boardSize^2
          Boolean backup = false;
          for(Integer i=0; i < boardSize*boardSize; i++) {
+
+           numCycles++;
 
            // Get a value that works for the row
            while(workingRow.contains(value) ) {
@@ -121,12 +107,11 @@ public class MakeBoard {
              workingRow.set(lastCol,0);
              board.put(rowNum,workingRow);
        }
-       // System.out.println(rowNum + " : " + workingRow.toString());
      }
+     return true;
    }
 
-   public static void initBoard(TreeMap<Integer,ArrayList<Integer>> board,
-                                Integer boardSize) {
+   public static void initBoard(Integer boardSize) {
 
        for (Integer i=0; i < boardSize; i++) {
           ArrayList <Integer> zeros = new ArrayList<Integer>(); 
@@ -142,5 +127,52 @@ public class MakeBoard {
        Integer val = generator.nextInt(max);
        return val;
     }
-}
+    public static void printOutputFiles(Integer boardSize) 
+                       throws IOException {
 
+        try {
+
+            // Print a file that contains the puzzle solution
+            File out = new File("sudoku_" + boardSize + "_solution.txt");
+            BufferedWriter output =  new BufferedWriter(new FileWriter(out));
+            for(Integer i=0; i < boardSize; i++) {
+               String outLine = board.get(i).toString();
+               outLine = outLine.replace(","," ");;
+               outLine = outLine.replace("["," ");;
+               outLine = outLine.replace("]"," ");;
+               output.append(outLine);
+               output.newLine();
+            }
+            System.out.println("The sudoku puzzle solution is in : " + out.toString());
+            output.flush();
+            output.close();
+
+            // Write out the input board with some percentage of the squares zeroed out
+            // This will be the puzzle input board
+            out = new File("sudoku_" + boardSize + "_input.txt");
+            output =  new BufferedWriter(new FileWriter(out));
+            for(Integer i=0; i < boardSize; i++) {
+                ArrayList<Integer> row = board.get(i);
+                Integer numZeros = getRand(boardSize);
+                for(Integer j=0; j< numZeros; j++) {
+                    Integer index = getRand(boardSize);
+                    row.set(index,0);
+                }
+                board.put(i,row);
+                String outLine = board.get(i).toString();
+                outLine = outLine.replace(","," ");;
+                outLine = outLine.replace("["," ");;
+                outLine = outLine.replace("]"," ");;
+                output.append(outLine);
+                output.newLine();
+            }
+            // Write out input board
+            System.out.println("The sudoku input puzzle is in : " + out.toString());
+            output.flush();
+            output.close();
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+    }
+}
